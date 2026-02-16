@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  name          String?
+  cohortId      String?   @map("cohort_id")
+  cohort        Cohort?   @relation(fields: [cohortId], references: [id])
+  interests     String    @default("[]") // JSON array: ["value","ambience","service","adventurous","healthy"]
+  quizCompleted Boolean   @default(false) @map("quiz_completed")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  quizAnswers QuizAnswer[]
+  reviews     Review[]
+}
+
+model Cohort {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  users       User[]
+  reviews     Review[]
+}
+
+model QuizAnswer {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId  Int      @map("question_id")
+  answerIndex Int      @map("answer_index")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, questionId])
+  @@index([userId])
+}
+
+model Restaurant {
+  id          String   @id @default(cuid())
+  name        String
+  city        String
+  cuisine     String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  reviews Review[]
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  restaurantId String   @map("restaurant_id")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  authorId     String   @map("author_id")
+  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorCohortId String @map("author_cohort_id")
+  authorCohort Cohort   @relation(fields: [authorCohortId], references: [id])
+  rating       Int      // 1-5
+  title        String
+  content      String
+  tags         String   @default("[]") // JSON array: ["service","value","ambience","adventurous","healthy"]
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@unique([restaurantId, authorId])
+  @@index([restaurantId])
+  @@index([authorCohortId])
+  @@index([authorId])
+}
