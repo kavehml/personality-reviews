@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { AddLocationForm } from "@/components/add-location-form";
 
 export default async function RestaurantsPage() {
   const restaurants = await prisma.restaurant.findMany({
+    orderBy: { name: "asc" },
+  });
+  const categories = await prisma.category.findMany({
     orderBy: { name: "asc" },
   });
 
@@ -12,6 +16,10 @@ export default async function RestaurantsPage() {
       <p className="text-stone-600 mb-8">
         Browse restaurants in Montreal and Toronto. Click to see reviews and prioritize those from your cohort.
       </p>
+
+      <div className="mb-8">
+        <AddLocationForm categories={categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug }))} />
+      </div>
 
       <div className="grid gap-4">
         {restaurants.map((r) => (

@@ -24,16 +24,28 @@ export function AppNav() {
             Restaurants
           </Link>
           {role === "ADMIN" && (
-            <Link
-              href="/categories"
-              className={
-                pathname === "/categories"
-                  ? "text-amber-600 font-medium"
-                  : "text-stone-600 hover:text-stone-900"
-              }
-            >
-              Categories
-            </Link>
+            <>
+              <Link
+                href="/categories"
+                className={
+                  pathname === "/categories"
+                    ? "text-amber-600 font-medium"
+                    : "text-stone-600 hover:text-stone-900"
+                }
+              >
+                Categories
+              </Link>
+              <Link
+                href="/admin/users"
+                className={
+                  pathname?.startsWith("/admin/users")
+                    ? "text-amber-600 font-medium"
+                    : "text-stone-600 hover:text-stone-900"
+                }
+              >
+                Users
+              </Link>
+            </>
           )}
           <Link
             href="/profile"

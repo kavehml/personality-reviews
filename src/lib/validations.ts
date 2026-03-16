@@ -27,5 +27,27 @@ export const interestsSchema = z.object({
   interests: z.array(z.enum(["value", "ambience", "service", "adventurous", "healthy"])),
 });
 
+export const createCategorySchema = z.object({
+  name: z.string().min(2).max(50),
+  slug: z
+    .string()
+    .min(2)
+    .max(50)
+    .regex(/^[a-z0-9-]+$/, "Slug must contain lowercase letters, numbers, and hyphens only"),
+  description: z.string().max(200).optional(),
+});
+
+export const createLocationSchema = z.object({
+  name: z.string().min(2).max(100),
+  city: z.string().min(2).max(80),
+  categorySlug: z.string().min(2).max(50),
+  detail: z.string().min(2).max(80),
+  description: z.string().min(5).max(500),
+});
+
+export const updateUserRoleSchema = z.object({
+  role: z.enum(["USER", "ADMIN"]),
+});
+
 export const INTEREST_OPTIONS = ["value", "ambience", "service", "adventurous", "healthy"] as const;
 export const TAG_OPTIONS = ["service", "value", "ambience", "adventurous", "healthy"] as const;

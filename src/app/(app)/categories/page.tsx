@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { RequireAdmin } from "@/components/require-admin";
+import { CategoryCreateForm } from "@/components/category-create-form";
 
 export default async function CategoriesPage() {
   const categories = await prisma.category.findMany({
@@ -18,6 +19,7 @@ export default async function CategoriesPage() {
         </p>
         <div className="bg-white border border-stone-200 rounded-lg p-6 space-y-4">
           <h2 className="text-sm font-medium text-stone-500">Existing categories</h2>
+          <CategoryCreateForm />
           {categories.length === 0 ? (
             <p className="text-sm text-stone-500">No categories yet.</p>
           ) : (
