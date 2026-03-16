@@ -7,6 +7,8 @@
     "startCommand": "npm start",
     "healthcheckPath": "/",
     "healthcheckTimeout": 30,
-    "preDeployCommand": null
+    "preDeployCommand": [
+      "npm run deploy:db"
+    ]
   }
 }
