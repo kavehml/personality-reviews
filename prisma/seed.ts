@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -54,17 +54,19 @@ async function main() {
 
   const passwordHash = await bcrypt.hash("password123", 12);
   const seedUsers = [
-    { email: "explorer@test.com", name: "Alex Explorer", cohortName: "Explorer" },
-    { email: "planner@test.com", name: "Pat Planner", cohortName: "Planner" },
-    { email: "foodie@test.com", name: "Fran Foodie", cohortName: "Foodie" },
-    { email: "value@test.com", name: "Val Value", cohortName: "Value-Seeker" },
-    { email: "minimal@test.com", name: "Mo Minimal", cohortName: "Minimalist" },
+    { email: "explorer@test.com", name: "Alex Explorer", cohortName: "Explorer", role: UserRole.ADMIN },
+    { email: "planner@test.com", name: "Pat Planner", cohortName: "Planner", role: UserRole.USER },
+    { email: "foodie@test.com", name: "Fran Foodie", cohortName: "Foodie", role: UserRole.USER },
+    { email: "value@test.com", name: "Val Value", cohortName: "Value-Seeker", role: UserRole.USER },
+    { email: "minimal@test.com", name: "Mo Minimal", cohortName: "Minimalist", role: UserRole.USER },
   ];
 
   for (const u of seedUsers) {
     await prisma.user.upsert({
       where: { email: u.email },
-      update: {},
+      update: {
+        role: u.role,
+      },
       create: {
         email: u.email,
         name: u.name,
@@ -72,6 +74,7 @@ async function main() {
         cohortId: cohortMap[u.cohortName],
         quizCompleted: true,
         interests: JSON.stringify(["service", "value", "ambience"]),
+        role: u.role,
       },
     });
   }
@@ -79,6 +82,27 @@ async function main() {
   const users = await prisma.user.findMany({
     where: { email: { in: seedUsers.map((u) => u.email) } },
   });
+
+  // Seed some generic place categories for future expansion
+  const categorySeeds = [
+    { name: "Restaurant", slug: "restaurant", description: "Places to eat and drink." },
+    { name: "Attraction", slug: "attraction", description: "Sights, museums, and things to do." },
+    { name: "Cinema", slug: "cinema", description: "Movie theaters and screening rooms." },
+    { name: "Café", slug: "cafe", description: "Coffee shops and casual cafés." },
+    { name: "Hotel", slug: "hotel", description: "Hotels and places to stay." },
+  ];
+
+  const adminUser = users.find((u) => u.email === "explorer@test.com");
+  for (const cat of categorySeeds) {
+    await prisma.category.upsert({
+      where: { slug: cat.slug },
+      update: {},
+      create: {
+        ...cat,
+        createdById: adminUser?.id,
+      },
+    });
+  }
 
   const sampleReviews: Array<{
     restaurantName: string;

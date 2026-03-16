@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -16,11 +21,13 @@ model User {
   cohort        Cohort?   @relation(fields: [cohortId], references: [id])
   interests     String    @default("[]") // JSON array: ["value","ambience","service","adventurous","healthy"]
   quizCompleted Boolean   @default(false) @map("quiz_completed")
+  role          UserRole  @default(USER)
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
   quizAnswers QuizAnswer[]
   reviews     Review[]
+  categories  Category[] @relation("CreatedCategories")
 }
 
 model Cohort {
@@ -29,6 +36,16 @@ model Cohort {
   description String?
   users       User[]
   reviews     Review[]
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  createdById String?  @map("created_by_id")
+  createdBy   User?    @relation("CreatedCategories", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at")
 }
 
 model QuizAnswer {

@@ -30,6 +30,7 @@ export const authOptions: NextAuthOptions = {
           cohortId: user.cohortId ?? undefined,
           cohortName: user.cohort?.name,
           quizCompleted: user.quizCompleted,
+          role: user.role,
         };
       },
     }),
@@ -41,6 +42,7 @@ export const authOptions: NextAuthOptions = {
         token.cohortId = (user as { cohortId?: string }).cohortId;
         token.cohortName = (user as { cohortName?: string }).cohortName;
         token.quizCompleted = (user as { quizCompleted?: boolean }).quizCompleted;
+        token.role = (user as { role?: "USER" | "ADMIN" }).role;
       }
       return token;
     },
@@ -50,6 +52,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as { cohortId?: string }).cohortId = token.cohortId as string;
         (session.user as { cohortName?: string }).cohortName = token.cohortName as string;
         (session.user as { quizCompleted?: boolean }).quizCompleted = token.quizCompleted as boolean;
+        (session.user as { role?: "USER" | "ADMIN" }).role = token.role as "USER" | "ADMIN";
       }
       return session;
     },

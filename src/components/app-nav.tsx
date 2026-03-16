@@ -3,9 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 export function AppNav() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const role = (session?.user as { role?: string } | undefined)?.role;
 
   return (
     <header className="border-b border-stone-200 bg-white">
@@ -20,6 +23,18 @@ export function AppNav() {
           >
             Restaurants
           </Link>
+          {role === "ADMIN" && (
+            <Link
+              href="/categories"
+              className={
+                pathname === "/categories"
+                  ? "text-amber-600 font-medium"
+                  : "text-stone-600 hover:text-stone-900"
+              }
+            >
+              Categories
+            </Link>
+          )}
           <Link
             href="/profile"
             className={pathname?.startsWith("/profile") ? "text-amber-600 font-medium" : "text-stone-600 hover:text-stone-900"}

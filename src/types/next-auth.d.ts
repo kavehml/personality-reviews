@@ -6,6 +6,7 @@ declare module "next-auth" {
     cohortId?: string;
     cohortName?: string;
     quizCompleted?: boolean;
+    role?: "USER" | "ADMIN";
   }
 
   interface Session {
@@ -14,6 +15,7 @@ declare module "next-auth" {
       cohortId?: string;
       cohortName?: string;
       quizCompleted?: boolean;
+      role?: "USER" | "ADMIN";
     };
   }
 }
@@ -24,5 +26,6 @@ declare module "next-auth/jwt" {
     cohortId?: string;
     cohortName?: string;
     quizCompleted?: boolean;
+    role?: "USER" | "ADMIN";
   }
 }
