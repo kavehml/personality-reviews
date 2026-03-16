@@ -10,7 +10,7 @@ export async function RequireOnboarding({ children }: { children: React.ReactNod
     where: { id: session.user.id },
     select: { quizCompleted: true },
   });
-  if (user?.quizCompleted) redirect("/restaurants");
-
+  // Allow users to retake the quiz even if they've completed it before.
+  // We only enforce authentication here; quiz completion is checked elsewhere.
   return <>{children}</>;
 }
