@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
 
 export async function RequireQuiz({ children }: { children: React.ReactNode }) {

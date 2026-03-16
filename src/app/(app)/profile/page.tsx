@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { ProfileInterests } from "@/components/profile-interests";

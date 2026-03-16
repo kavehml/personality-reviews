@@ -17,7 +17,7 @@ type RestaurantWithReviews = {
     title: string;
     content: string;
     tags: string;
-    createdAt: string;
+    createdAt: Date | string;
     author: { id: string; name: string | null };
     authorCohort: { id: string; name: string };
   }>;
@@ -203,7 +203,7 @@ export function RestaurantDetail({
                 </div>
               )}
               <p className="text-xs text-stone-400 mt-2">
-                {new Date(r.createdAt).toLocaleDateString()}
+                {new Date(r.createdAt as string).toLocaleDateString()}
               </p>
             </div>
           ))

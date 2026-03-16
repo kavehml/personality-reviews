@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth-utils";
 import { RestaurantDetail } from "@/components/restaurant-detail";
 
 export default async function RestaurantPage({

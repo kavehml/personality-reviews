@@ -36,25 +36,22 @@ async function main() {
       })
     )
   );
-
   const cohortMap = Object.fromEntries(cohorts.map((c) => [c.name, c.id]));
 
-  const restaurants = await Promise.all(
-    RESTAURANTS.map((r) =>
-      prisma.restaurant.upsert({
-        where: { id: r.name + r.city },
-        update: {},
-        create: {
-          id: r.name.toLowerCase().replace(/\s+/g, "-") + "-" + r.city.toLowerCase(),
-          ...r,
-        },
-      }).catch(() =>
-        prisma.restaurant.create({ data: r })
-      )
-    )
-  );
+  const restaurantCount = await prisma.restaurant.count();
+  let restaurants = await prisma.restaurant.findMany();
+  if (restaurantCount < RESTAURANTS.length) {
+    for (const r of RESTAURANTS) {
+      const existing = restaurants.find(
+        (x) => x.name === r.name && x.city === r.city
+      );
+      if (!existing) {
+        const created = await prisma.restaurant.create({ data: r });
+        restaurants.push(created);
+      }
+    }
+  }
 
-  // Create seed users (one per cohort) and reviews
   const passwordHash = await bcrypt.hash("password123", 12);
   const seedUsers = [
     { email: "explorer@test.com", name: "Alex Explorer", cohortName: "Explorer" },
@@ -84,69 +81,66 @@ async function main() {
   });
 
   const sampleReviews: Array<{
-    restaurantIdx: number;
+    restaurantName: string;
+    restaurantCity: string;
     authorEmail: string;
     rating: number;
     title: string;
     content: string;
     tags: string[];
   }> = [
-    { restaurantIdx: 0, authorEmail: "explorer@test.com", rating: 5, title: "Unexpected and delightful", content: "Each course surprised me. The creativity here is unmatched.", tags: ["adventurous"] },
-    { restaurantIdx: 0, authorEmail: "foodie@test.com", rating: 5, title: "Culinary excellence", content: "The technique and flavor combinations were exceptional.", tags: ["service", "ambience"] },
-    { restaurantIdx: 1, authorEmail: "planner@test.com", rating: 5, title: "Worth the reservation", content: "Booked 3 weeks ahead. Everything ran smoothly and met expectations.", tags: ["service"] },
-    { restaurantIdx: 1, authorEmail: "value@test.com", rating: 4, title: "Big portions", content: "You get a lot for the price. Hearty and satisfying.", tags: ["value"] },
-    { restaurantIdx: 2, authorEmail: "minimal@test.com", rating: 5, title: "No frills, just greatness", content: "Simple smoked meat. Nothing fancy. Perfect.", tags: [] },
-    { restaurantIdx: 2, authorEmail: "explorer@test.com", rating: 4, title: "Classic Montreal", content: "A must-try experience. The line is part of it.", tags: ["adventurous"] },
-    { restaurantIdx: 3, authorEmail: "foodie@test.com", rating: 5, title: "Best tasting menu in TO", content: "Every course was perfectly executed.", tags: ["service", "ambience"] },
-    { restaurantIdx: 3, authorEmail: "planner@test.com", rating: 5, title: "Impeccable service", content: "Reservations are essential. The team delivers consistently.", tags: ["service"] },
-    { restaurantIdx: 4, authorEmail: "value@test.com", rating: 5, title: "So many options", content: "Great variety at reasonable prices. Love the market vibe.", tags: ["value"] },
-    { restaurantIdx: 4, authorEmail: "minimal@test.com", rating: 4, title: "Honest food", content: "Fresh ingredients, no pretension. My kind of place.", tags: [] },
-    { restaurantIdx: 5, authorEmail: "explorer@test.com", rating: 5, title: "Authentic Thai", content: "Real northern Thai flavors. Not the usual pad thai.", tags: ["adventurous", "healthy"] },
-    { restaurantIdx: 5, authorEmail: "foodie@test.com", rating: 5, title: "Heat and depth", content: "The spice levels and complexity are outstanding.", tags: ["service"] },
-    { restaurantIdx: 6, authorEmail: "value@test.com", rating: 4, title: "Hearty Quebecois", content: "Portions are huge. Come hungry.", tags: ["value"] },
-    { restaurantIdx: 6, authorEmail: "planner@test.com", rating: 5, title: "Book ahead", content: "Popular spot. Plan your reservation.", tags: ["service"] },
-    { restaurantIdx: 7, authorEmail: "explorer@test.com", rating: 5, title: "Tapas paradise", content: "So many options. Great for sharing and exploring.", tags: ["ambience", "adventurous"] },
-    { restaurantIdx: 7, authorEmail: "foodie@test.com", rating: 5, title: "Wood-fired magic", content: "The octopus and grilled dishes are superb.", tags: ["ambience"] },
-    { restaurantIdx: 8, authorEmail: "minimal@test.com", rating: 5, title: "Warm and simple", content: "Beautiful food without the fuss. Real hospitality.", tags: ["service"] },
-    { restaurantIdx: 8, authorEmail: "explorer@test.com", rating: 5, title: "Syrian discovery", content: "New flavors for me. Everything was delicious.", tags: ["adventurous", "ambience"] },
-    { restaurantIdx: 9, authorEmail: "foodie@test.com", rating: 5, title: "Canadian terroir", content: "Local ingredients shine. Thoughtful and seasonal.", tags: ["healthy", "ambience"] },
-    { restaurantIdx: 9, authorEmail: "planner@test.com", rating: 4, title: "Consistent quality", content: "Reliable fine dining. Know what you're getting.", tags: ["service"] },
+    { restaurantName: "Le Mousso", restaurantCity: "Montreal", authorEmail: "explorer@test.com", rating: 5, title: "Unexpected and delightful", content: "Each course surprised me. The creativity here is unmatched.", tags: ["adventurous"] },
+    { restaurantName: "Le Mousso", restaurantCity: "Montreal", authorEmail: "foodie@test.com", rating: 5, title: "Culinary excellence", content: "The technique and flavor combinations were exceptional.", tags: ["service", "ambience"] },
+    { restaurantName: "Joe Beef", restaurantCity: "Montreal", authorEmail: "planner@test.com", rating: 5, title: "Worth the reservation", content: "Booked 3 weeks ahead. Everything ran smoothly.", tags: ["service"] },
+    { restaurantName: "Joe Beef", restaurantCity: "Montreal", authorEmail: "value@test.com", rating: 4, title: "Big portions", content: "You get a lot for the price. Hearty and satisfying.", tags: ["value"] },
+    { restaurantName: "Schwartz's", restaurantCity: "Montreal", authorEmail: "minimal@test.com", rating: 5, title: "No frills, just greatness", content: "Simple smoked meat. Nothing fancy. Perfect.", tags: [] },
+    { restaurantName: "Schwartz's", restaurantCity: "Montreal", authorEmail: "explorer@test.com", rating: 4, title: "Classic Montreal", content: "A must-try experience. The line is part of it.", tags: ["adventurous"] },
+    { restaurantName: "Alo", restaurantCity: "Toronto", authorEmail: "foodie@test.com", rating: 5, title: "Best tasting menu in TO", content: "Every course was perfectly executed.", tags: ["service", "ambience"] },
+    { restaurantName: "Alo", restaurantCity: "Toronto", authorEmail: "planner@test.com", rating: 5, title: "Impeccable service", content: "Reservations are essential. The team delivers consistently.", tags: ["service"] },
+    { restaurantName: "St. Lawrence Market", restaurantCity: "Toronto", authorEmail: "value@test.com", rating: 5, title: "So many options", content: "Great variety at reasonable prices. Love the market vibe.", tags: ["value"] },
+    { restaurantName: "St. Lawrence Market", restaurantCity: "Toronto", authorEmail: "minimal@test.com", rating: 4, title: "Honest food", content: "Fresh ingredients, no pretension. My kind of place.", tags: [] },
+    { restaurantName: "Pai Northern Thai Kitchen", restaurantCity: "Toronto", authorEmail: "explorer@test.com", rating: 5, title: "Authentic Thai", content: "Real northern Thai flavors. Not the usual pad thai.", tags: ["adventurous", "healthy"] },
+    { restaurantName: "Pai Northern Thai Kitchen", restaurantCity: "Toronto", authorEmail: "foodie@test.com", rating: 5, title: "Heat and depth", content: "The spice levels and complexity are outstanding.", tags: ["service"] },
+    { restaurantName: "Au Pied de Cochon", restaurantCity: "Montreal", authorEmail: "value@test.com", rating: 4, title: "Hearty Quebecois", content: "Portions are huge. Come hungry.", tags: ["value"] },
+    { restaurantName: "Au Pied de Cochon", restaurantCity: "Montreal", authorEmail: "planner@test.com", rating: 5, title: "Book ahead", content: "Popular spot. Plan your reservation.", tags: ["service"] },
+    { restaurantName: "Bar Isabel", restaurantCity: "Toronto", authorEmail: "explorer@test.com", rating: 5, title: "Tapas paradise", content: "So many options. Great for sharing and exploring.", tags: ["ambience", "adventurous"] },
+    { restaurantName: "Bar Isabel", restaurantCity: "Toronto", authorEmail: "foodie@test.com", rating: 5, title: "Wood-fired magic", content: "The octopus and grilled dishes are superb.", tags: ["ambience"] },
+    { restaurantName: "Damas", restaurantCity: "Montreal", authorEmail: "minimal@test.com", rating: 5, title: "Warm and simple", content: "Beautiful food without the fuss. Real hospitality.", tags: ["service"] },
+    { restaurantName: "Damas", restaurantCity: "Montreal", authorEmail: "explorer@test.com", rating: 5, title: "Syrian discovery", content: "New flavors for me. Everything was delicious.", tags: ["adventurous", "ambience"] },
+    { restaurantName: "Canis", restaurantCity: "Toronto", authorEmail: "foodie@test.com", rating: 5, title: "Canadian terroir", content: "Local ingredients shine. Thoughtful and seasonal.", tags: ["healthy", "ambience"] },
+    { restaurantName: "Canis", restaurantCity: "Toronto", authorEmail: "planner@test.com", rating: 4, title: "Consistent quality", content: "Reliable fine dining. Know what you're getting.", tags: ["service"] },
   ];
 
   for (const r of sampleReviews) {
     const author = users.find((u) => u.email === r.authorEmail);
-    const restaurant = restaurants[r.restaurantIdx];
-    const cohort = cohorts.find((c) => c.name === (seedUsers.find((u) => u.email === r.authorEmail)?.cohortName ?? "Explorer"));
+    const restaurant = restaurants.find(
+      (x) => x.name === r.restaurantName && x.city === r.restaurantCity
+    );
+    const userMeta = seedUsers.find((u) => u.email === r.authorEmail);
+    const cohort = userMeta ? cohortMap[userMeta.cohortName] : null;
     if (author && restaurant && cohort) {
       await prisma.review.upsert({
-        where: { id: `${restaurant.id}-${author.id}-${r.title.slice(0, 5)}` },
+        where: {
+          restaurantId_authorId: {
+            restaurantId: restaurant.id,
+            authorId: author.id,
+          },
+        },
         update: {},
         create: {
           restaurantId: restaurant.id,
           authorId: author.id,
-          authorCohortId: cohort.id,
+          authorCohortId: cohort,
           rating: r.rating,
           title: r.title,
           content: r.content,
           tags: JSON.stringify(r.tags),
         },
-      }).catch(() =>
-        prisma.review.create({
-          data: {
-            restaurantId: restaurant.id,
-            authorId: author.id,
-            authorCohortId: cohort.id,
-            rating: r.rating,
-            title: r.title,
-            content: r.content,
-            tags: JSON.stringify(r.tags),
-          },
-        })
-      );
+      });
     }
   }
 
-  console.log("Seed complete.");
+  console.log("Seed complete. Test logins: explorer@test.com, planner@test.com, etc. Password: password123");
 }
 
 main()

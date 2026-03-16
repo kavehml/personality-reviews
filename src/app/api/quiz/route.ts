@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
 import { assignCohortFromAnswers } from "@/lib/cohorts";
 import { z } from "zod";
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       }),
     ]);
 
-    return NextResponse.json({ cohortId, cohortName: cohort.name });
+    return NextResponse.json({ cohortId: cohort.id, cohortName: cohort.name });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

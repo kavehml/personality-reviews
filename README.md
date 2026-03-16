@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Personality Reviews
 
-## Getting Started
+A "Google Reviews"-style app where users see and prioritize reviews written by people with **similar personality types**. Built with Next.js, TypeScript, Prisma, and NextAuth.
 
-First, run the development server:
+## Features
+
+- **Landing page** — Simple explanation and Sign up / Log in CTAs
+- **Auth** — Email + password, JWT sessions, protected routes
+- **Personality quiz** — 10-question onboarding, assigns one of 5 cohorts (Explorer, Planner, Foodie, Value-Seeker, Minimalist)
+- **Restaurants** — Browse, view details, write reviews with ratings, titles, content, and tags
+- **Cohort-matched filtering** — Filter reviews by: My cohort, All, or Other cohort (dropdown)
+- **Match score** — Badge showing relevance (cohort + rating + interest overlap)
+
+## Tech Stack
+
+- **Next.js 16** (App Router) + **TypeScript**
+- **Prisma** + **PostgreSQL** (production on Railway)
+- **NextAuth v4** (Credentials provider)
+- **Tailwind CSS**
+- **Zod** for validation
+- **bcrypt** for password hashing
+
+## Local Run Instructions
+
+> **Note:** The app uses PostgreSQL. For local dev, you need a Postgres instance. Use a local install, Docker, or a free cloud DB (e.g. [Neon](https://neon.tech)).
+
+### 1. Install dependencies
+
+```bash
+cd personality-reviews
+npm install
+```
+
+### 2. Set up the database
+
+Create `.env` from `.env.example` and set `DATABASE_URL` to your Postgres connection string.
+
+```bash
+npm run db:migrate
+npm run db:seed
+```
+
+### 3. Run the dev server (requires PostgreSQL)
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Test accounts (after seeding)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Email | Password | Cohort |
+|-------|----------|--------|
+| explorer@test.com | password123 | Explorer |
+| planner@test.com | password123 | Planner |
+| foodie@test.com | password123 | Foodie |
+| value@test.com | password123 | Value-Seeker |
+| minimal@test.com | password123 | Minimalist |
 
-## Learn More
+Or sign up a new account and complete the personality quiz.
 
-To learn more about Next.js, take a look at the following resources:
+## Deployment (Railway + GitHub)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The app is configured for **Railway** with PostgreSQL. See **[DEPLOY-RAILWAY.md](./DEPLOY-RAILWAY.md)** for step-by-step deployment instructions.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Quick summary:**
+1. Push code to GitHub
+2. Create Railway project → Deploy from GitHub
+3. Add PostgreSQL database (Railway injects `DATABASE_URL`)
+4. Set `NEXTAUTH_SECRET` and `NEXTAUTH_URL` in Railway Variables
+5. Deploy (migrations run automatically during build)
+6. Run `railway run npx prisma db seed` once after first deploy
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+personality-reviews/
+├── prisma/
+│   ├── schema.prisma    # DB schema
+│   └── seed.ts          # 10 restaurants, 5 users, 20 reviews
+├── src/
+│   ├── app/
+│   │   ├── (app)/       # Protected app routes (restaurants, profile)
+│   │   ├── api/         # Route handlers (auth, quiz, restaurants, profile)
+│   │   ├── login/
+│   │   ├── signup/
+│   │   ├── onboarding/
+│   │   └── page.tsx     # Landing
+│   ├── components/
+│   ├── lib/             # auth, prisma, validations, cohorts, match-score
+│   ├── middleware.ts    # Auth protection
+│   └── types/
+└── package.json
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## What's Next (5 logical next features)
+
+1. **Follow reviewers** — Let users follow reviewers in their cohort for a personalized feed
+2. **Personalized feed** — Home page showing reviews from followed users and high-match restaurants
+3. **More categories** — Travel destinations, activities, products (extend Restaurant → Place with type)
+4. **Improved personality model** — Use a validated instrument (e.g. Big Five) or ML-based cohort assignment
+5. **Abuse moderation** — Report reviews, admin dashboard, automated content filters
