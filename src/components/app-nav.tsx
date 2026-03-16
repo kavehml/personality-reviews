@@ -22,7 +22,7 @@ export function AppNav() {
           </Link>
           <Link
             href="/profile"
-            className={pathname === "/profile" ? "text-amber-600 font-medium" : "text-stone-600 hover:text-stone-900"}
+            className={pathname?.startsWith("/profile") ? "text-amber-600 font-medium" : "text-stone-600 hover:text-stone-900"}
           >
             Profile
           </Link>

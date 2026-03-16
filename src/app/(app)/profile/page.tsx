@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { ProfileInterests } from "@/components/profile-interests";
+import { ProfileTabs } from "@/components/profile-tabs";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -23,7 +24,8 @@ export default async function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Profile</h1>
+      <h1 className="text-2xl font-bold mb-4">Profile</h1>
+      <ProfileTabs active="overview" />
       <div className="bg-white border border-stone-200 rounded-lg p-6 space-y-6">
         <div>
           <h2 className="text-sm font-medium text-stone-500">Email</h2>
